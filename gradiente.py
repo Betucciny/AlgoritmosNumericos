@@ -31,7 +31,7 @@ def main():
             break
         actual = nuevos
 
-    print(actual)
+    print(actual, ecuacion.subs(x, actual[0]).subs(y, actual[1]))
 
 
 def error(original, nuevo):

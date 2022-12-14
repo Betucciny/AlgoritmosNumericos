@@ -1,27 +1,36 @@
+import sympy as sp
 import numpy as np
-from sympy import symbols, Matrix, solve
 
-x, y, la = symbols('x y l')
-f = x*y
-g = 4*x**2+8*y**2-16
-sistema = Matrix([x, y])
-lagrange = f - la*g
+x, y, lamda = sp.var('x y lambda')
+f = 4*x**3 + y**2
+g = 2*x**2 + y**2 - 1
+L = f - lamda*g
 
 
 def main():
-    gradf = Matrix([f.diff(i) for i in sistema])
-    gradg = Matrix([g.diff(i) for i in sistema])
-    lamb1 = solve(gradf[0]-la*gradg[0], la)
-    lamb2 = solve(gradf[1] - la * gradg[1], la)
-    newx = [solve(l1-l2, x) for l1, l2 in zip(lamb1, lamb2)]
-    newx = [j for i in newx for j in i]
-    print(newx)
-
-
-
-
-
-
+    gradL = [sp.diff(L, i) for i in [x, y]]
+    eqs = gradL + [g]
+    solution = sp.solve(eqs, [x, y, lamda], dict=True)
+    hessian = [[sp.diff(sp.diff(L, i), j) for i in [lamda, x, y]]for j in [lamda, x, y]]
+    for sol in solution:
+        H = sp.Matrix(hessian)
+        valor = f
+        for var, val in sol.items():
+            H = H.subs(var, val)
+            valor = valor.subs(var, val)
+        sol["f"] = valor
+        H = np.linalg.det(np.array(H.tolist(), dtype=float))
+        sol["h"] = H
+    for sol in solution:
+        if sol["h"] > 0:
+            print("Se tiene un maximo local en: ")
+        elif sol["h"] < 0:
+            print("Se tiene un minimo local en: ")
+        else:
+            print("No se puede conluir nada sobre el punto critico en: ")
+        print("x: ", sol[x])
+        print("y: ", sol[y])
+        print("Con un valor de f de: ", sol["f"], "\n")
 
 
 if __name__ == '__main__':
